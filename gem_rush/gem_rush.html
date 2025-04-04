@@ -94,6 +94,7 @@
     <script src="sprite.js"></script>
     <script src="player.js"></script>
     <script src="gem.js"></script>
+    <script src="fire.js"></script>
     <script>
     $(function() {
         /* Get the canvas and 2D context */
@@ -107,7 +108,7 @@
             gameover: new Audio("gameover.mp3")
         };
 
-        const totalGameTime = 5;   // Total game time in seconds
+        const totalGameTime = 20;   // Total game time in seconds
         const gemMaxAge = 3000;     // The maximum age of the gems in milliseconds
         let gameStartTime = 0;      // The timestamp when the game starts
         let collectedGems = 0;      // The number of gems collected in the game
@@ -118,11 +119,19 @@
         /* Create the sprites in the game */
         const player = Player(context, 427, 240, gameArea); // The player
         const gem = Gem(context, 427, 350, "green");        // The gem
+        const corners = gameArea.getPoints();
+        const fires = [
+            Fire(context, corners.topLeft[0], corners.topLeft[1]),
+            Fire(context, corners.topRight[0], corners.topRight[1]),
+            Fire(context, corners.bottomLeft[0], corners.bottomLeft[1]),
+            Fire(context, corners.bottomRight[0], corners.bottomRight[1])
+        ];
 
         /* The main processing of the game */
         function doFrame(now) {
             if (gameStartTime == 0) gameStartTime = now;
-
+            
+            sounds.background.play();
             /* Update the time remaining */
             const gameTimeSoFar = now - gameStartTime;
             const timeRemaining = Math.ceil((totalGameTime * 1000 - gameTimeSoFar) / 1000);
@@ -131,6 +140,8 @@
             /* TODO */
             /* Handle the game over situation here */
             if(timeRemaining == 0){
+                sounds.gameover.play();
+                sounds.background.pause();
                 $("#final-gems").text(collectedGems);
                 $("#game-over").fadeIn(500);
                 return;
@@ -139,7 +150,7 @@
             /* Update the sprites */
             gem.update(now);
             player.update(now);
-
+            fires.forEach(fire => fire.update(now));
 
             /* TODO */
             /* Randomize the gem and collect the gem here */
@@ -149,6 +160,7 @@
             const playerBound = player.getBoundingBox();
             const gemBound = gem.getXY();
             if (playerBound.isPointInBox(gemBound.x, gemBound.y)) {
+                sounds.collect.play();
                 collectedGems++;
                 gem.randomize(gameArea);
             }
@@ -158,7 +170,7 @@
             /* Draw the sprites */
             gem.draw();
             player.draw();
-
+            fires.forEach(fire => fire.draw());
             /* Process the next frame */
             requestAnimationFrame(doFrame);
         }
