@@ -177,6 +177,7 @@ const Sprite = function(ctx, x, y) {
         
        //drawing the next index of sprite
         drawSprite();
+        requestAnimationFrame(update);
         return this;
     };
 
