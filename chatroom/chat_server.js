@@ -33,28 +33,47 @@ app.post("/register", (req, res) => {
     // Get the JSON data from the body
     const { username, avatar, name, password } = req.body;
 
-    console.log(req.body);
     //
-    // D. Reading the users.json file
+    // D. Reading the users.json file 
     //
+    const users = JSON.parse(fs.readFileSync('./data/users.json','utf8'));
+    console.log(users);
     //
     // E. Checking for the user data correctness
     //
+    if (!username || !avatar || !name || !password) {
+         return res.json({ status: "error", error: "All fields are required." });
+    }
 
+    if (!containWordCharsOnly(username)) {
+        return res.json({ status: "error", error: "Username can only contain letters, numbers, and underscores." });
+    }
+    
+    if (username in users) {
+        return res.json({ status: "error", error: "Username already exists." });
+    }
     //
     // G. Adding the new user account
     //
+    const hashpw = bcrypt.hashSync(password,10);
 
-    //
+    //put into users
+    users[username] = {
+        avatar,
+        name,
+        password: hashpw
+    };
+
     // H. Saving the users.json file
-    //
+    const usersJSON = JSON.stringify(users, null, 2);
+    fs.writeFileSync('./data/users.json', usersJSON); // hardcode path
 
     //
     // I. Sending a success response to the browser
-    //
-
-    // Delete when appropriate
-    res.json({ status: "error", error: "This endpoint is not yet implemented." });
+    res.json({ 
+        status: "success",
+        user: { username, avatar, name } 
+    });
 });
 
 // Handle the /signin endpoint

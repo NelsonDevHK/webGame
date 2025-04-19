@@ -15,40 +15,37 @@ const Registration = (function() {
         // A. Preparing the user data
         //
         const data = {
-            [username]:{
-                avatar:avatar,
-                name:name,
-                password:password
-            }
-        }
+            username: username,
+            avatar: avatar,
+            name: name,
+            password: password
+          };
         // //
         // B. Sending the AJAX request to the server
         //
+
+
         fetch('/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-          })
-          .then(response => {
-            // Parse the JSON response regardless of status
-            return response.json().then(json => {
-                if (response.ok) {
-                    console.log("Successful!");
-                    if (onSuccess) onSuccess(json);
-                } else {
-                    console.log("Error!");
-                    if (onError) onError(json);
-                }
-            });
+        })
+        .then(response => response.json()) // Parse JSON response
+        .then(json => {
+            if (json.status === "error") {
+                // If server responded with an error, pass the message to onError callback
+                if (onError) onError(json.error);
+            } else {
+                // Successful registration, call onSuccess callback
+                if (onSuccess) onSuccess(json);
+                console.log("here");
+            }
         })
         .catch(error => {
-            console.log("Error!");
-            if (onError) onError(error);
+            if (onError) onError("Network or unexpected errors.");
         });
-        
-
-        
     };
+        
 
     return { register };
 })();
