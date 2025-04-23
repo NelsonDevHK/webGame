@@ -84,17 +84,31 @@ app.post("/signin", (req, res) => {
     //
     // D. Reading the users.json file
     //
+    const usersRaw = fs.readFileSync('./data/users.json', 'utf8');
+    users = JSON.parse(usersRaw);
 
-    //
-    // E. Checking for username/password
-    //
+    if (!username || !password) {
+        return res.json({ status: "error", error: "Username and password are required." });
+    }
 
-    //
-    // G. Sending a success response with the user account
-    //
- 
-    // Delete when appropriate
-    res.json({ status: "error", error: "This endpoint is not yet implemented." });
+    if (!(username in users)) {
+        return res.json({ status: "error", error: "Invalid username or password." });
+    }
+
+    const user = users[username];
+    if (!bcrypt.compareSync(password, user.password)) {
+        return res.json({ status: "error", error: "Invalid username or password." });
+    }
+
+    // G. Sending a success response with the user account (without password)
+    res.json({
+        status: "success",
+        user: {
+            username,
+            avatar: user.avatar,
+            name: user.name
+        }
+    });
 });
 
 // Handle the /validate endpoint

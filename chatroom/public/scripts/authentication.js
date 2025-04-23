@@ -19,21 +19,34 @@ const Authentication = (function() {
         //
         // A. Preparing the user data
         //
- 
+        const data = {
+            username:username,
+            password:password
+        }
         //
         // B. Sending the AJAX request to the server
         //
-
+        fetch('/signin',{
+            method:"POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
         //
         // F. Processing any error returned by the server
         //
-
-        //
-        // H. Handling the success response from the server
-        //
-
-        // Delete when appropriate
-        if (onError) onError("This function is not yet implemented.");
+        .then(response => response.json())
+        .then(json => {
+            if (json.status === "success") {
+                // H. Handling the success response from the server
+                user = json.user; 
+                if (onSuccess) onSuccess(user);
+            } else if (onError) {
+                onError(json.error);
+            }
+        })
+        .catch(() => {
+            if (onError) onError("Network error or server unreachable.");
+        });
     };
 
     // This function sends a validate request to the server
