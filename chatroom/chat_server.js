@@ -19,7 +19,7 @@ const chatSession = session({
     resave: false,
     saveUninitialized: false,
     rolling: true,
-    cookie: { maxAge: 300000 }
+    cookie: { maxAge: 300000 } // 5mins
 });
 app.use(chatSession);
 
@@ -99,31 +99,33 @@ app.post("/signin", (req, res) => {
     if (!bcrypt.compareSync(password, user.password)) {
         return res.json({ status: "error", error: "Invalid username or password." });
     }
+    // Store user info in session (without password)
+    req.session.user = {
+        username,
+        avatar: user.avatar,
+        name: user.name
+    };
 
     // G. Sending a success response with the user account (without password)
     res.json({
         status: "success",
-        user: {
-            username,
-            avatar: user.avatar,
-            name: user.name
-        }
+        user: req.session.user
     });
 });
 
 // Handle the /validate endpoint
 app.get("/validate", (req, res) => {
 
-    //
-    // B. Getting req.session.user
-    //
+    const user = req.session.user;
 
-    //
-    // D. Sending a success response with the user account
-    //
+    if (user) {
+        res.json({ status: "success", user });
+    } else {
+        res.json({ status: "error", error: "No user signed in." });
+    }
  
     // Delete when appropriate
-    res.json({ status: "error", error: "This endpoint is not yet implemented." });
+    // res.json({ status: "error", error: "This endpoint is not yet implemented." });
 });
 
 // Handle the /signout endpoint
@@ -132,13 +134,13 @@ app.get("/signout", (req, res) => {
     //
     // Deleting req.session.user
     //
+    req.session.user = null;
 
-    //
+    req.session.destroy();
+
     // Sending a success response
-    //
+    res.json({ status: "success" });
  
-    // Delete when appropriate
-    res.json({ status: "error", error: "This endpoint is not yet implemented." });
 });
 
 

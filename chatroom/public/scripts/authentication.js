@@ -24,6 +24,7 @@ const Authentication = (function() {
             password:password
         }
         //
+        
         // B. Sending the AJAX request to the server
         //
         fetch('/signin',{
@@ -56,20 +57,24 @@ const Authentication = (function() {
     //                 request fails in this form `onError(error)`
     const validate = function(onSuccess, onError) {
 
-        //
-        // A. Sending the AJAX request to the server
-        //
-
-        //
+        fetch('/validate', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
         // C. Processing any error returned by the server
-        //
-
-        //
-        // E. Handling the success response from the server
-        //
-
-        // Delete when appropriate
-        if (onError) onError("This function is not yet implemented.");
+        .then(response => response.json())
+        .then(json => {
+            // E. Handling the success response from the server
+            if (json.status === "success") {
+                user = json.user; // store user in closure variable
+                if (onSuccess) onSuccess();
+            } else if (onError) {
+                onError(json.error);
+            }
+        })
+        .catch(() => {
+            if (onError) onError("Network error or server unreachable.");
+        });
     };
 
     // This function sends a sign-out request to the server
@@ -78,10 +83,24 @@ const Authentication = (function() {
     // * `onError`   - This is a callback function to be called when the
     //                 request fails in this form `onError(error)`
     const signout = function(onSuccess, onError) {
-
-        // Delete when appropriate
-        if (onError) onError("This function is not yet implemented.");
+        fetch('/signout', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(json => {
+            if (json.status === "success") {
+                user = null; // reset closure variable user to null
+                if (onSuccess) onSuccess();
+            } else if (onError) {
+                onError(json.error);
+            }
+        })
+        .catch(() => {
+            if (onError) onError("Network error or server unreachable.");
+        });
     };
+    
 
     return { getUser, signin, validate, signout };
 })();
