@@ -65,6 +65,17 @@ body {
 .spacer-2 { width: 10px; height: 10px; }
 .spacer-grow { flex-grow: 1; }
 
+#loading-screen p{
+    font-family: 'Press Start 2P', cursive;
+    color:white;
+}
+/* ending screen */
+#ending-screen p{
+    font-family: 'Press Start 2P', cursive;
+    color:white;
+}
+
+
 /* Overlay */
 .overlay {
     position: fixed;

@@ -8,14 +8,14 @@
 </head>
 <body>
     <div id="container" class="col">
-        <div id="header" class="row">
-            <div id="title" style="font-family: 'Press Start 2P', cursive;">Maze Game
+        <div id="header" class="row" style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="flex: 1; display: flex; justify-content: center;">
+                <div id="title" style="font-family: 'Press Start 2P', cursive;">Maze Game</div>
             </div>
             <!--
             <div class="spacer-grow"></div>
             -->
             <!-- User panel and signout button removed/commented out -->
-            <!--
             <div id="user-panel" class="row">
                 <div class="field-content row shadow">
                     <span class="user-avatar"></span>
@@ -23,22 +23,21 @@
                 </div>
                 <button id="signout-button" class="icon"><span class="material-icons">logout</span></button>
             </div>
-            -->
         </div>
   
         <div id="main-panel" class="row"> <!--Sumfu part  1) Game Panel-->
             
             <div id = "loading-screen" > <!--Jessi part  1) center div that show loading 2) styling-->
-
+                <p>Waiting for other players...</p>
             </div>      
                <div id ="game-panel" >
 
                </div>
-            </div>
-            <div id = "ending-screen" > <!--Jessi part  1) center div show dummy data 2) styling-->
+               <div id = "ending-screen" style="display: none;">
+                   <p>End</p>
+               </div>
 
-            </div>
-    </div>
+
     <!-- Signin and Register overlay remains as is -->
     <div id="signin-overlay" class="overlay row">
         <div class="content shadow row">
