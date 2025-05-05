@@ -1,18 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Abel&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 :root {
-    --material-icons-color: black;
-    --field-color: gray;
-    --field-background: white;
-    --field-background-hover: #eee;
+    --material-icons-color: white;
+    --field-color: white;
+    --field-background: #30292f;
+    --field-background-hover: #413f54;
     --input-background: #eee;
-    --overlay-background: rgba(245, 158, 114, 0.8);
-    --overlay-caption-color: #eb4a40;
-    --overlay-content-background: linear-gradient(white, #fde0c5);
+    --overlay-background: rgba(0, 0, 20, 0.8);
+    --overlay-caption-color: #fff;
+    --overlay-content-background: linear-gradient(#888797, #535261);
 
-    --header-background: linear-gradient(to right, #eb4a40, #f59e72);
-    --main-panel-background: linear-gradient(white, #fde0c5);
-    --online-users-panel-background: linear-gradient(to right, #fde0c5, #facba6);
-    --chat-panel-background: none;
+    --header-background: linear-gradient(to right, #5f5aa2, #355691);
+    --main-panel-background: linear-gradient(#413F54, #30292f);
+    /* --online-users-panel-background: linear-gradient(to right, #fde0c5, #facba6); */
+    /* --chat-panel-background: none; */
 
     --title-color: white;
     --caption-color: white;
@@ -20,13 +21,14 @@
     --font-color: black;
     --date-color: gray;
 
-    --register-form-background: linear-gradient(#fde0c5, #facba6);
-    --warning-color: red;
+    --register-form-background: linear-gradient(#413f54, #30292f);
+    --warning-color: #fff;
 
     --button-color: white;
-    --button-background: #f2855d;
-    --button-background-hover: #f8b58b;
+    --button-background: #355691;
+    --button-background-hover: #537ac0;
 }
+/* global style */
 * {
     font-family: "Abel", sans-serif;
     color: var(--font-color);
@@ -190,7 +192,7 @@ button.icon:active {
 }
 
 /* Chat area */
-#chat-panel {
+/* #chat-panel {
     flex-grow: 1;
     align-items: stretch;
     height: 100%;
@@ -218,9 +220,10 @@ button.icon:active {
     font-size: 75%;
     color: var(--date-color);
 }
+*/
 
 /* Online users panel */
-#online-users-panel {
+/* #online-users-panel {
 	flex: 0 0 250px;
     height: 100%;
     padding: 0;
@@ -232,7 +235,7 @@ button.icon:active {
     align-items: flex-start;
     justify-content: start;
     overflow-y: auto;
-}
+} */
 
 /* Signin overlay */
 #signin-form {
