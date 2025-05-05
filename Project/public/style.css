@@ -191,6 +191,10 @@ button.icon:active {
     background: var(--main-panel-background);
 }
 
+#game-canvas{
+    background: url(/images/background.png);
+    background-size: cover;
+}
 /* Chat area */
 /* #chat-panel {
     flex-grow: 1;
