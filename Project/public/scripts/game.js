@@ -1,74 +1,75 @@
 const Game = (function() {
-
-    let socket = null;
     let gameState = 'LOADING';
-    let player = null; // Declare player in module scope so it’s accessible in the game loop
-    
+    let player = null;
+    let canvas, ctx;
+    let keys = {}; // Track keyboard state
 
     const initialize = function() {
-        // Initialize game canvas
-        console.log("initialize");
         const panel = document.getElementById('game-panel');
-        panel.innerHTML = ''; // Clear previous content if needed
-
-        const canvas = document.createElement('canvas');
+        panel.innerHTML = '';
+        
+        canvas = document.createElement('canvas');
         canvas.id = 'game-canvas';
         canvas.width = 602;
         canvas.height = 600;
         panel.appendChild(canvas);
+        
+        ctx = canvas.getContext('2d');
+        const gameArea = BoundingBox(ctx, 0, 0, 600, 602);
 
-        const ctx = canvas.getContext('2d');
-        const gameArea = BoundingBox(ctx, 0, 0, 600, 602); // Full canvas area
-
-        // Create the player (pass ctx, not 'context')
-        player = Player(ctx, 50, 550, gameArea);
-
-        requestAnimationFrame(startGameLoop);
+        player = Player(ctx, 300, 300, gameArea); // Center position
+        setupInput();
+        startGameLoop();
     };
 
-    // If you want to connect to server, you can re-enable this
-    /*
-    const connectToServer = function() {
-        socket = io('/game'); // Connect to game namespace
-        socket.on('gameStart', (players) => {
-            gameState = 'PLAYING';
-            requestAnimationFrame(startGameLoop);
+    const setupInput = function() {
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            handleMovement();
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            handleStop();
         });
     };
-    */
 
-    // The main game loop, using requestAnimationFrame and time argument
-    let lastTime = null;
-    function startGameLoop(time) {
-        if (gameState !== 'PLAYING') {
-            // Only start playing after you set gameState = 'PLAYING'
-            // For now, let's set it to PLAYING after initialize
-            gameState = 'PLAYING';
+    const handleMovement = function() {
+        if (keys['ArrowLeft']) player.move(1);
+        if (keys['ArrowUp']) player.move(2);
+        if (keys['ArrowRight']) player.move(3);
+        if (keys['ArrowDown']) player.move(4);
+    };
+
+    const handleStop = function() {
+        if (!keys['ArrowLeft']) player.stop(1);
+        if (!keys['ArrowUp']) player.stop(2);
+        if (!keys['ArrowRight']) player.stop(3);
+        if (!keys['ArrowDown']) player.stop(4);
+    };
+
+    const startGameLoop = function() {
+        let lastTime = performance.now();
+        
+        function update(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (player) {
+                player.update(deltaTime); // Pass deltaTime for smooth movement
+                player.draw();
+            }
+            
+            requestAnimationFrame(update);
         }
-
-        // Calculate deltaTime (in ms) for smooth animation (optional)
-        if (lastTime === null) lastTime = time;
-        const deltaTime = time - lastTime;
-        lastTime = time;
-
-        // Update and draw player with time
-        // (You can add background drawing here if you want)
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (player) {
-            player.update(time); // Pass current time for animation
-            player.draw();
-        }
-
-        // Continue the game loop
-        requestAnimationFrame(startGameLoop);
-    }
+        
+        requestAnimationFrame(update);
+    };
 
     return {
         initialize,
-        //connectToServer,
         showLoadingScreen: () => {
             document.getElementById('loading-screen').style.display = 'block';
         },
