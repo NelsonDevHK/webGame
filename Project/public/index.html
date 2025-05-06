@@ -33,9 +33,10 @@
                <div id ="game-panel" >
 
                </div>
-
-            <div id="ending-screen" style="display: none;">
-                <p>Congratulations! You collected the gem in <span id="timer-display">0.00</span> seconds!</p>
+            <div id="ending-screen" style="display:none;">
+                <h1 id="ending-message" class="ending-message"></h1>
+                <h3 id="ending-time" class="ending-message">Leaderboard (Best Times):</h3>
+                <ul id="records-list"></ul>
             </div>
 
 
@@ -79,7 +80,9 @@
         </div>
             <!-- <script src="/socket.io/socket.io.min.js"></script>
     <script src="scripts/socket.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="scripts/ui.js"></script>
+    <script src="scripts/bomb.js"></script>
     <script src="scripts/game.js"></script>
     <script src="scripts/registration.js"></script>
     <script src="scripts/authentication.js"></script>

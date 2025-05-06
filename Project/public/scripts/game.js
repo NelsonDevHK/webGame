@@ -18,6 +18,7 @@ const Game = (function() {
 
     const backgroundSound = new Audio("./assets/LavenderTown.mp3");
     const winningSound = new Audio("./assets/win.mp3");
+    const losingSound = new Audio("./assets/gameover.mp3");
 
     const waterAreas = [
         // Main center
@@ -97,6 +98,10 @@ const Game = (function() {
         gem = Gem(ctx, 0, 0, 'green');
         gem.randomize(safeArea);
         
+
+
+
+        
         startTime = performance.now();
         // Pass isInWater to Player for collision checking
         myId = socket.id;
@@ -115,11 +120,25 @@ const Game = (function() {
         }
         player = Player(ctx, myStart.x, myStart.y, gameArea, isInWater);
         opponent = Player(ctx, oppStart.x, oppStart.y, gameArea, isInWater);
-        socket.on("opponentPosition", (pos) => {
-            if (opponent && typeof opponent.setXY === 'function') {
-              opponent.setXY(pos.x, pos.y);
-            }
+
+
+
+        socket.on("opponentPosition", (data) => {
+            if (opponent) 
+              opponent.setXY(data.x, data.y);
           });
+
+          socket.on("gameEnd", (data) => {
+            // data.winnerId is the socket.id of the winner
+            // data.time is the winning time
+            // Optionally: data.records for leaderboard
+            if (data.winnerId === socket.id) {
+                Game.showEndingScreen("win", data.time, data.records);
+            } else {
+                Game.showEndingScreen("lose", data.time, data.records);
+            }
+        });
+
         setupInput();
         startGameLoop();
     });
@@ -180,8 +199,7 @@ const Game = (function() {
                 backgroundSound.pause();
                 winningSound.play();
                 const timeTaken = ((currentTime - startTime)/1000).toFixed(2);
-                document.getElementById('timer-display').textContent = timeTaken;
-                Game.showEndingScreen();
+                socket.emit("collectGem", { time: timeTaken });
             }
 
 
@@ -190,7 +208,10 @@ const Game = (function() {
                 player.draw();
                 if (socket && player && typeof player.getXY === 'function') {
                     const pos = player.getXY();
-                    socket.emit("position", pos);
+                    socket.emit("position", {
+                        x: pos.x,
+                        y: pos.y,
+                      });
                 }
             if (opponent) {
                 opponent.update(deltaTime);
@@ -198,13 +219,13 @@ const Game = (function() {
             }
             
                 // Draw water bounds for debug
-                ctx.save();
-                ctx.strokeStyle = 'rgba(0,0,255,0.5)';
-                ctx.lineWidth = 2;
-                waterAreas.forEach(area => {
-                    ctx.strokeRect(area.x, area.y, area.width, area.height);
-                });
-                ctx.restore();
+                // ctx.save();
+                // ctx.strokeStyle = 'rgba(0,0,255,0.5)';
+                // ctx.lineWidth = 2;
+                // waterAreas.forEach(area => {
+                //     ctx.strokeRect(area.x, area.y, area.width, area.height);
+                // });
+                // ctx.restore();
             }
             gem.update(currentTime);
             gem.draw();
@@ -249,9 +270,22 @@ const Game = (function() {
         showLoadingScreen: () => {
             document.getElementById('loading-screen').style.display = 'block';
         },
-        showEndingScreen: () => {
+        showEndingScreen: (result, time, records) => {
             document.getElementById('game-panel').style.display = 'none';
             document.getElementById('ending-screen').style.display = 'block';
+            document.getElementById('ending-message').textContent =
+                result === "win" ? "You win!" : "You lose!";
+            document.getElementById('ending-time').textContent = `Time: ${time}s`;
+
+            // Show leaderboard
+            const list = document.getElementById('records-list');
+            if (records && records.length > 0) {
+              list.innerHTML = records.map((rec, i) =>
+                `<li>${i+1}. ${rec.name} - ${rec.time.toFixed(2)}s</li>`
+              ).join('');
+            } else {
+              list.innerHTML = "<li>No records yet.</li>";
+            }
         }
     };
     

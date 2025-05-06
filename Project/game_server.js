@@ -118,6 +118,30 @@ const PORT = 8000;
 
 let waitingPlayer = null; // Only one can wait at a time
 let players = {};         // Map socket.id -> player info
+let gemCollected = false;
+let lastWinnerId = null;
+
+const recordsPath = './data/records.json';
+
+function getRecords() {
+  try {
+    const data = JSON.parse(fs.readFileSync(recordsPath, "utf8"));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function updateRecords(time, playerName) {
+  let records = getRecords();
+  if (!Array.isArray(records)) records = [];
+  records.push({
+    name: playerName,
+    time: parseFloat(time)
+  });
+  records.sort((a, b) => a.time - b.time);
+  fs.writeFileSync(recordsPath, JSON.stringify(records.slice(0, 10), null, 2));
+}
 
 io.on("connection", (socket) => {
   console.log("New connection:", socket.id);
@@ -160,6 +184,27 @@ io.on("connection", (socket) => {
       if (id !== socket.id) {
         io.to(id).emit("opponentPosition", pos);
       }
+    }
+  });
+  socket.on("collectGem", (data) => {
+    if (!gemCollected) {
+      gemCollected = true;
+      lastWinnerId = socket.id;
+  
+      // Update leaderboard
+      const playerName = players[socket.id]?.name || "Anonymous";
+      updateRecords(data.time, playerName);
+  
+      // Broadcast to both players, including leaderboard
+      const records = getRecords();
+      for (let id in players) {
+        io.to(id).emit("gameEnd", {
+          winnerId: socket.id,
+          time: data.time,
+          records
+        });
+      }
+      setTimeout(() => { gemCollected = false; lastWinnerId = null; }, 3000);
     }
   });
 });

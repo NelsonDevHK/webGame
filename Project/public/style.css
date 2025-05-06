@@ -64,19 +64,19 @@ body {
 .spacer-2 { width: 10px; height: 10px; }
 .spacer-grow { flex-grow: 1; }
 
-#loading-screen{
+#loading-screen p{
     font-family: 'Press Start 2P', cursive;
     color:white;
 }
 /* ending screen */
-#ending-screen p, span{
+#ending-screen .ending-message{
     font-family: 'Press Start 2P', cursive;
     color:white;
 }
-/* #ending-screen #time-display{
+#ending-screen #records-list li{
     font-family: 'Press Start 2P', cursive;
     color:white;
-} */
+}
 /* Overlay */
 .overlay {
     position: fixed;
