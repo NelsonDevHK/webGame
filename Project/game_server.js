@@ -141,18 +141,27 @@ io.on("connection", (socket) => {
       // Notify both players to start, send both players' info
       io.to(socket.id).emit("gameStart", {
         players: [
-          { id: socket.id, name: playerName },
-          { id: opponentId, name: players[opponentId].name }
+          { id: opponentId, name: players[opponentId].name }, // always first player to join
+          { id: socket.id, name: playerName }                 // always second player to join
         ]
       });
       io.to(opponentId).emit("gameStart", {
         players: [
-          { id: opponentId, name: players[opponentId].name },
-          { id: socket.id, name: playerName }
+          { id: opponentId, name: players[opponentId].name }, // always first player to join
+          { id: socket.id, name: playerName }                 // always second player to join
         ]
       });
     }
 })
+
+  socket.on("position", (pos) => {
+    // Relay position to the other player
+    for (let id in players) {
+      if (id !== socket.id) {
+        io.to(id).emit("opponentPosition", pos);
+      }
+    }
+  });
 });
 
 

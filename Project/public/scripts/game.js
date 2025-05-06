@@ -1,14 +1,18 @@
 const Game = (function() {
+    let socket;
     
     let gameState = 'LOADING';
     let player = null;
+    let opponent = null;
+    let myId = null;
+    let myPlayerIndex = null;
+    
     let canvas, ctx;
     let fogCanvas, fogCtx;
+    let gem = null;
     let keys = {}; // Track keyboard state
     let startTime;
-    let gem = null;
     let timerActive = true;
-    let socket;
     const PLAYER1_START = { x: 50, y: 550 };
     const PLAYER2_START = { x: 550, y: 50 };
 
@@ -45,17 +49,13 @@ const Game = (function() {
         socket.on("gameStart", (data) => {
           console.log("Game starting with players:", data.players);
           document.getElementById('loading-screen').style.display = 'none';
-          // You can now initialize your player/opponent and start the game loop here
-          // e.g. setupInput(); startGameLoop();
-        
-
 
 
         const panel = document.getElementById('game-panel');
         panel.innerHTML = '';
     
-        backgroundSound.loop = true;
-        backgroundSound.play().catch(e => console.log("Sound play failed:", e));
+        // backgroundSound.loop = true;
+        // backgroundSound.play().catch(e => console.log("Sound play failed:", e));
 
         // Main game canvas
         canvas = document.createElement('canvas');
@@ -99,8 +99,27 @@ const Game = (function() {
         
         startTime = performance.now();
         // Pass isInWater to Player for collision checking
-        player = Player(ctx, PLAYER1_START.x, PLAYER1_START.y, gameArea, isInWater);
-    
+        myId = socket.id;
+        const myPlayerIndex = data.players.findIndex(p => p.id === socket.id);
+
+        // Assign starting positions based on index
+        let myStart, oppStart;
+        if (myPlayerIndex === 0) {
+          // You are the first player
+          myStart = PLAYER1_START;
+          oppStart = PLAYER2_START;
+        } else {
+          // You are the second player
+          myStart = PLAYER2_START;
+          oppStart = PLAYER1_START;
+        }
+        player = Player(ctx, myStart.x, myStart.y, gameArea, isInWater);
+        opponent = Player(ctx, oppStart.x, oppStart.y, gameArea, isInWater);
+        socket.on("opponentPosition", (pos) => {
+            if (opponent && typeof opponent.setXY === 'function') {
+              opponent.setXY(pos.x, pos.y);
+            }
+          });
         setupInput();
         startGameLoop();
     });
@@ -165,10 +184,19 @@ const Game = (function() {
                 Game.showEndingScreen();
             }
 
+
             if (player) {
                 player.update(deltaTime);
                 player.draw();
-    
+                if (socket && player && typeof player.getXY === 'function') {
+                    const pos = player.getXY();
+                    socket.emit("position", pos);
+                }
+            if (opponent) {
+                opponent.update(deltaTime);
+                opponent.draw();
+            }
+            
                 // Draw water bounds for debug
                 ctx.save();
                 ctx.strokeStyle = 'rgba(0,0,255,0.5)';
@@ -200,15 +228,14 @@ const Game = (function() {
             fogCtx.closePath();
             fogCtx.fill();
     
-            // To support two players, repeat the above for player2
-            // Example:
-            // if (player2) {
-            //     const p2 = player2.getCenter();
-            //     fogCtx.beginPath();
-            //     fogCtx.arc(p2.x -15 , p2.y - 5 , VISION_RADIUS, 0, Math.PI * 2);
-            //     fogCtx.closePath();
-            //     fogCtx.fill();
-            // }
+        
+            if (opponent) {
+                const p2 = opponent.getCenter ? opponent.getCenter() : {x: opponent.x, y: opponent.y};
+                fogCtx.beginPath();
+                fogCtx.arc(p2.x - 15, p2.y - 5, VISION_RADIUS, 0, Math.PI * 2);
+                fogCtx.closePath();
+                fogCtx.fill();
+              }
     
             fogCtx.restore();
     

@@ -65,7 +65,12 @@ const Player = function(ctx, x, y, gameArea, collisionCheck) {
 
     const speedUp = function() { speed = 250; };
     const slowDown = function() { speed = 150; };
-
+    const getXY = function() {
+        return sprite.getXY();
+    };
+    const setXY = function(x, y) {
+        sprite.setXY(x, y);
+    };
     // Update method with water collision check
     const update = function(time) {
         if (direction != 0) {
@@ -94,6 +99,8 @@ const Player = function(ctx, x, y, gameArea, collisionCheck) {
 
     return {
         move: move,
+        getXY: getXY,
+        setXY: setXY,
         stop: stop,
         speedUp: speedUp,
         slowDown: slowDown,
