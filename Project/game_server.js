@@ -2,11 +2,15 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const session = require("express-session");
-// const { createServer } = require("http");
-// const { Server } = require("socket.io");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 
+const server = createServer(app); // <-- create HTTP server from Express app
+const io = new Server(server);  
+
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use(express.static("public"));
 app.use(express.json());
 
@@ -18,6 +22,7 @@ const gameSession = session({
   cookie: { maxAge: 300000 },
 });
 app.use(gameSession);
+io.engine.use(gameSession);
 
 function containWordCharsOnly(text) {
   return /^\w+$/.test(text);
@@ -109,6 +114,48 @@ app.get("/signout", (req, res) => {
 
 
 const PORT = 8000;
-app.listen(PORT, () => {
+
+
+let waitingPlayer = null; // Only one can wait at a time
+let players = {};         // Map socket.id -> player info
+
+io.on("connection", (socket) => {
+  console.log("New connection:", socket.id);
+
+  let playerName = socket.request.session.user?.name || "Anonymous";
+
+  socket.on("join", () => {
+    console.log("Join event received from:", socket.id);
+
+    if (!waitingPlayer) {
+      waitingPlayer = socket;
+      players[socket.id] = { name: playerName };
+      socket.emit("waiting");
+    } else {
+      // Start game for both
+      players[socket.id] = { name: playerName };
+      const opponent = waitingPlayer;
+      const opponentId = opponent.id;
+      waitingPlayer = null;
+
+      // Notify both players to start, send both players' info
+      io.to(socket.id).emit("gameStart", {
+        players: [
+          { id: socket.id, name: playerName },
+          { id: opponentId, name: players[opponentId].name }
+        ]
+      });
+      io.to(opponentId).emit("gameStart", {
+        players: [
+          { id: opponentId, name: players[opponentId].name },
+          { id: socket.id, name: playerName }
+        ]
+      });
+    }
+})
+});
+
+
+server.listen(PORT, () => {
   console.log(`Game server running on http://localhost:${PORT}`);
 });

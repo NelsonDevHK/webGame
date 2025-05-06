@@ -8,7 +8,7 @@ const Game = (function() {
     let startTime;
     let gem = null;
     let timerActive = true;
-
+    let socket;
     const PLAYER1_START = { x: 50, y: 550 };
     const PLAYER2_START = { x: 550, y: 50 };
 
@@ -29,6 +29,28 @@ const Game = (function() {
     const VISION_RADIUS = 50; // Adjust as needed
     
     const initialize = function() {
+
+
+        socket = io();
+        socket.on('connect', () => {
+          console.log("Socket.IO connected! My ID is", socket.id);
+          socket.emit("join");
+          document.getElementById('loading-screen').style.display = 'block';
+        });
+        socket.on("waiting", () => {
+          console.log("Entered waiting state");
+          document.getElementById('loading-screen').style.display = 'block';
+        });
+    
+        socket.on("gameStart", (data) => {
+          console.log("Game starting with players:", data.players);
+          document.getElementById('loading-screen').style.display = 'none';
+          // You can now initialize your player/opponent and start the game loop here
+          // e.g. setupInput(); startGameLoop();
+        
+
+
+
         const panel = document.getElementById('game-panel');
         panel.innerHTML = '';
     
@@ -81,6 +103,7 @@ const Game = (function() {
     
         setupInput();
         startGameLoop();
+    });
     };
     
     const setupInput = function() {
@@ -206,4 +229,3 @@ const Game = (function() {
     };
     
     })();
-    
