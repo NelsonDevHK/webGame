@@ -55,6 +55,13 @@ const Player = function(ctx, x, y, gameArea, collisionCheck) {
             direction = 0;
         }
     };
+    const getCenter = function() {
+        // Return the center of the player's sprite for fog clearing
+        return {
+            x: sprite.getXY().x + width / 2,
+            y: sprite.getXY().y + height / 2
+        };
+    }
 
     const speedUp = function() { speed = 250; };
     const slowDown = function() { speed = 150; };
@@ -92,6 +99,7 @@ const Player = function(ctx, x, y, gameArea, collisionCheck) {
         slowDown: slowDown,
         getBoundingBox: sprite.getBoundingBox,
         draw: sprite.draw,
-        update: update
+        update: update,
+        getCenter,getCenter
     };
 };

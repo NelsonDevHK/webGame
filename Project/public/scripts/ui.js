@@ -18,8 +18,10 @@ const SignInForm = (function() {
             Authentication.signin(username, password,
                 () => {
                     hide();
+            // First Part Loading Screen and Do game initialize
                     UserPanel.update(Authentication.getUser());
                     UserPanel.show();
+                    Game.initialize();
                 },
                 (error) => { $("#signin-message").text(error); }
             );

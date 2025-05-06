@@ -1,10 +1,14 @@
 const Game = (function() {
-
+    
     let gameState = 'LOADING';
     let player = null;
     let canvas, ctx;
+    let fogCanvas, fogCtx;
     let keys = {}; // Track keyboard state
-    
+    let startTime;
+    let gem = null;
+    let timerActive = true;
+
     const PLAYER1_START = { x: 50, y: 550 };
     const PLAYER2_START = { x: 550, y: 50 };
     
@@ -17,17 +21,55 @@ const Game = (function() {
         { x: 394, y: 270, width: 38, height: 195 }
     ];
     
+    // Fog settings
+    const FOG_COLOR = 'rgba(0,0,0,0.5)'; // adjust 0 for develop
+    const VISION_RADIUS = 50; // Adjust as needed
+    
     const initialize = function() {
         const panel = document.getElementById('game-panel');
         panel.innerHTML = '';
+    
+        // Main game canvas
         canvas = document.createElement('canvas');
         canvas.id = 'game-canvas';
         canvas.width = 602;
         canvas.height = 600;
         panel.appendChild(canvas);
         ctx = canvas.getContext('2d');
+        
+        // Fog canvas overlay (same size, positioned absolutely)
+        fogCanvas = document.createElement('canvas');
+        fogCanvas.id = 'fog-canvas';
+        fogCanvas.width = canvas.width;
+        fogCanvas.height = canvas.height;
+        fogCanvas.style.position = 'absolute';
+        fogCanvas.style.left = canvas.offsetLeft + 'px';
+        fogCanvas.style.top = canvas.offsetTop + 'px';
+        fogCanvas.style.pointerEvents = 'none'; // allow mouse events to pass through
+        panel.appendChild(fogCanvas);
+        fogCtx = fogCanvas.getContext('2d');
+    
         const gameArea = BoundingBox(ctx, 0, 0, 600, 602);
     
+
+        const safeArea = {
+            randomPoint: () => {
+                let point;
+                do {
+                    point = {
+                        x: Math.random() * (canvas.width - 32),
+                        y: Math.random() * (canvas.height - 32)
+                    };
+                } while(isInWater(point.x, point.y, 32, 32));
+                return point;
+            }
+        };
+
+        // Initialize gem
+        gem = Gem(ctx, 0, 0, 'green');
+        gem.randomize(safeArea);
+        
+        startTime = performance.now();
         // Pass isInWater to Player for collision checking
         player = Player(ctx, PLAYER1_START.x, PLAYER1_START.y, gameArea, isInWater);
     
@@ -69,14 +111,28 @@ const Game = (function() {
             y < area.y + area.height
         );
     }
+    function checkGemCollision() {
+        // Get player and gem positions with dimensions
+        const playerBound = player.getBoundingBox();
+        const gemBound = gem.getXY();
+        return (playerBound.isPointInBox(gemBound.x, gemBound.y)) 
+    }
     
     const startGameLoop = function() {
         let lastTime = performance.now();
         function update(currentTime) {
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (timerActive && checkGemCollision()) {
+                timerActive = false;
+                const timeTaken = ((currentTime - startTime)/1000).toFixed(2);
+                document.getElementById('timer-display').textContent = timeTaken;
+                Game.showEndingScreen();
+            }
+
             if (player) {
                 player.update(deltaTime);
                 player.draw();
@@ -90,6 +146,40 @@ const Game = (function() {
                 });
                 ctx.restore();
             }
+            gem.update(currentTime);
+            gem.draw();
+            
+       
+            // FOG OF WAR DRAWING
+            fogCtx.clearRect(0, 0, fogCanvas.width, fogCanvas.height);
+            fogCtx.save();
+            // Fill the whole canvas with black
+            fogCtx.globalCompositeOperation = 'source-over';
+            fogCtx.fillStyle = FOG_COLOR;
+            fogCtx.fillRect(0, 0, fogCanvas.width, fogCanvas.height);
+    
+            // Clear a circle around each player (for now, just one)
+            
+            fogCtx.globalCompositeOperation = 'destination-out';
+            
+            const p1 = player.getCenter ? player.getCenter() : {x: player.x, y: player.y};
+            fogCtx.beginPath();
+            fogCtx.arc(p1.x - 15, p1.y - 5, VISION_RADIUS, 0, Math.PI * 2);
+            fogCtx.closePath();
+            fogCtx.fill();
+    
+            // To support two players, repeat the above for player2
+            // Example:
+            // if (player2) {
+            //     const p2 = player2.getCenter();
+            //     fogCtx.beginPath();
+            //     fogCtx.arc(p2.x -15 , p2.y - 5 , VISION_RADIUS, 0, Math.PI * 2);
+            //     fogCtx.closePath();
+            //     fogCtx.fill();
+            // }
+    
+            fogCtx.restore();
+    
             requestAnimationFrame(update);
         }
         requestAnimationFrame(update);
@@ -101,6 +191,7 @@ const Game = (function() {
             document.getElementById('loading-screen').style.display = 'block';
         },
         showEndingScreen: () => {
+            document.getElementById('game-panel').style.display = 'none';
             document.getElementById('ending-screen').style.display = 'block';
         }
     };
