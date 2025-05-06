@@ -137,7 +137,7 @@ function updateRecords(time, playerName) {
   if (!Array.isArray(records)) records = [];
   records.push({
     name: playerName,
-    time: parseFloat(time)
+    time: parseFloat(time) 
   });
   records.sort((a, b) => a.time - b.time);
   fs.writeFileSync(recordsPath, JSON.stringify(records.slice(0, 10), null, 2));
@@ -201,6 +201,21 @@ io.on("connection", (socket) => {
         io.to(id).emit("gameEnd", {
           winnerId: socket.id,
           time: data.time,
+          records
+        });
+      }
+      setTimeout(() => { gemCollected = false; lastWinnerId = null; }, 3000);
+    }
+  });
+  socket.on("playerLose", () => {
+    if (!gemCollected) { // Prevent double end
+      gemCollected = true;
+      lastWinnerId = null;
+      const records = getRecords();
+      for (let id in players) {
+        io.to(id).emit("gameEnd", {
+          winnerId: (id === socket.id) ? null : id, // The other player wins
+          time: null,
           records
         });
       }

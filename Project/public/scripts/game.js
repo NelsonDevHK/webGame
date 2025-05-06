@@ -6,7 +6,8 @@ const Game = (function() {
     let opponent = null;
     let myId = null;
     let myPlayerIndex = null;
-    
+    let bombs = [];
+
     let canvas, ctx;
     let fogCanvas, fogCtx;
     let gem = null;
@@ -30,7 +31,7 @@ const Game = (function() {
     ];
     
     // Fog settings
-    const FOG_COLOR = 'rgba(0,0,0,0.5)'; // adjust 0 for develop
+    const FOG_COLOR = 'rgba(0,0,0,1)'; // adjust 0 for develop
     const VISION_RADIUS = 50; // Adjust as needed
     
     const initialize = function() {
@@ -98,8 +99,12 @@ const Game = (function() {
         gem = Gem(ctx, 0, 0, 'green');
         gem.randomize(safeArea);
         
-
-
+        bombs = [];
+        for (let i = 0; i < 5; i++) { // 5 bombs, adjust as needed
+          const bomb = Bomb(ctx, 0, 0);
+          bomb.randomize(safeArea);
+          bombs.push(bomb);
+        }
 
         
         startTime = performance.now();
@@ -184,7 +189,12 @@ const Game = (function() {
         const gemBound = gem.getXY();
         return (playerBound.isPointInBox(gemBound.x, gemBound.y)) 
     }
-    
+    function checkBombCollision(bomb) {
+        const playerBound = player.getBoundingBox();
+        const bombBound = bomb.getXY();
+        return playerBound.isPointInBox(bombBound.x, bombBound.y);
+      }
+
     const startGameLoop = function() {
         
         let lastTime = performance.now();
@@ -194,6 +204,19 @@ const Game = (function() {
     
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+
+            if (timerActive) {
+                for (let i = 0; i < bombs.length; i++) {
+                  if (checkBombCollision(bombs[i])) {
+                    timerActive = false;
+                    backgroundSound.pause();
+                    losingSound.play();
+                    socket.emit("playerLose");
+                    break;
+                  }
+                }
+              }
+
             if (timerActive && checkGemCollision()) {
                 timerActive = false;
                 backgroundSound.pause();
@@ -230,7 +253,10 @@ const Game = (function() {
             gem.update(currentTime);
             gem.draw();
             
-       
+            bombs.forEach(bomb => {
+                bomb.update(currentTime);
+                bomb.draw();
+              });
             // FOG OF WAR DRAWING
             fogCtx.clearRect(0, 0, fogCanvas.width, fogCanvas.height);
             fogCtx.save();
