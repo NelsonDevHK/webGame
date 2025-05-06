@@ -8,7 +8,6 @@
     --input-background: #eee;
     --overlay-background: rgba(0, 0, 20, 0.8);
     --overlay-caption-color: #fff;
-    --overlay-content-background: linear-gradient(#888797, #535261);
 
     --header-background: linear-gradient(to right, #5f5aa2, #355691);
     --main-panel-background: linear-gradient(#413F54, #30292f);
@@ -205,10 +204,18 @@ button.icon:active {
 }
 
 #game-canvas{
-    background: url(/images/background.png);
+    background: url(/assets/background.png);
     background-size: cover;
 }
 
+#game-description p{
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    margin: 0;
+    font-family: 'Press Start 2P', cursive
+}
 /* Signin overlay */
 #signin-form {
     width: 270px;

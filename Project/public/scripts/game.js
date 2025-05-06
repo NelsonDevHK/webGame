@@ -11,7 +11,10 @@ const Game = (function() {
 
     const PLAYER1_START = { x: 50, y: 550 };
     const PLAYER2_START = { x: 550, y: 50 };
-    
+
+    const backgroundSound = new Audio("./assets/LavenderTown.mp3");
+    const winningSound = new Audio("./assets/win.mp3");
+
     const waterAreas = [
         // Main center
         { x: 208, y: 120, width: 210, height: 360 },
@@ -29,6 +32,9 @@ const Game = (function() {
         const panel = document.getElementById('game-panel');
         panel.innerHTML = '';
     
+        backgroundSound.loop = true;
+        backgroundSound.play().catch(e => console.log("Sound play failed:", e));
+
         // Main game canvas
         canvas = document.createElement('canvas');
         canvas.id = 'game-canvas';
@@ -119,6 +125,7 @@ const Game = (function() {
     }
     
     const startGameLoop = function() {
+        
         let lastTime = performance.now();
         function update(currentTime) {
             const deltaTime = currentTime - lastTime;
@@ -128,6 +135,8 @@ const Game = (function() {
             
             if (timerActive && checkGemCollision()) {
                 timerActive = false;
+                backgroundSound.pause();
+                winningSound.play();
                 const timeTaken = ((currentTime - startTime)/1000).toFixed(2);
                 document.getElementById('timer-display').textContent = timeTaken;
                 Game.showEndingScreen();

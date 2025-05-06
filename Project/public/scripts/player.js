@@ -23,7 +23,7 @@ const Player = function(ctx, x, y, gameArea, collisionCheck) {
     sprite.setSequence(sequences.idleDown)
           .setScale(2)
           .setShadowScale({ x: 0.75, y: 0.20 })
-          .useSheet("/images/BIRDSPRITESHEET_Blue.png");
+          .useSheet("/assets/BIRDSPRITESHEET_Blue.png");
 
     let direction = 0;
     let speed = 150;
