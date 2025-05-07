@@ -107,17 +107,19 @@ const Game = (function() {
       };
 
       // Initialize gem
-      gem = Gem(ctx, 0, 0, 'green');
-      gem.randomize(safeArea);
-
-      // Initialize bombs
+      let placedObjects = [];
+      const gemPoint = randomNonOverlappingPoint([], isInWater, 32, 32);
+      gem = Gem(ctx, gemPoint.x, gemPoint.y, 'green');
+      placedObjects.push({ x: gemPoint.x, y: gemPoint.y });
+      
+      // --- Place bombs, avoiding gem and each other ---
       bombs = [];
       for (let i = 0; i < 5; i++) {
-        const bomb = Bomb(ctx, 0, 0);
-        bomb.randomize(safeArea);
+        const bombPoint = randomNonOverlappingPoint(placedObjects, isInWater, 32, 32);
+        const bomb = Bomb(ctx, bombPoint.x, bombPoint.y);
         bombs.push(bomb);
+        placedObjects.push({ x: bombPoint.x, y: bombPoint.y });
       }
-
       startTime = performance.now();
       myId = socket.id;
       myPlayerIndex = data.players.findIndex(p => p.id === socket.id);
@@ -194,6 +196,33 @@ const Game = (function() {
     const bombBound = bomb.getXY();
     return playerBound.isPointInBox(bombBound.x, bombBound.y);
   }
+
+  function isOverlapping(a, b, size = 32) {
+    return (
+      a.x < b.x + size &&
+      a.x + size > b.x &&
+      a.y < b.y + size &&
+      a.y + size > b.y
+    );
+  }
+  
+  // Generate a random point not in water and not overlapping with existing objects
+  function randomNonOverlappingPoint(existing, isInWater, width, height) {
+    let point, tries = 0;
+    do {
+      point = {
+        x: Math.random() * (canvas.width - width),
+        y: Math.random() * (canvas.height - height)
+      };
+      tries++;
+      // Check for water and overlap with all existing objects
+    } while (
+      isInWater(point.x, point.y, width, height) ||
+      existing.some(obj => isOverlapping(point, obj, width)) && tries < 1000
+    );
+    return point;
+  }
+
 
   const startGameLoop = function() {
     let lastTime = performance.now();
